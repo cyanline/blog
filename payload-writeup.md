@@ -1,11 +1,10 @@
-## AV Evading Payload Generation
-date: Jan 2014
-### CyanLine LLC &copy; 2014 All Rights Reserved
-### Description of the payload generation processes
-#### <sb@cyanline.com>
-#### <cory@cyanline.com>
+# AV Evading Payload Generation
+## CyanLine LLC &copy; 2014 All Rights Reserved
+## Description of the payload generation processes
+### <sb@cyanline.com>
+### <cory@cyanline.com>
 
-### Table of Contents
+## Table of Contents
 1. Introduction
 2. Veil payload generation
 3. Evil putty payload generation
@@ -15,28 +14,28 @@ date: Jan 2014
 
 ***
 
-### 1. Introduction
-This document is a writeup which covers various methods to generate Metasploit payloads that bypass common anti-virus (AV) solutions.
+## 1. Introduction
+This document is a writeup which covers various methods to generate Metasploit payloads that bypass common anti-virus (AV) solutions. There are 3 searate options that we tried.
++ Veil executable for payload generation
++ Attach malware to an existing executable
++ Generate raw shell code in Metasploit and import that into a custom executable
+
 Each method follows a similar architecture which is made up of the following components.
 
 + a functioning executable (.exe)
 + an executable-backdooring payload
 + and a Metasploit server for catching incoming sessions. 
 
-The methods covered in this document use Metasploit to achieve the following.
-
-+ listen for incoming connections
-+ generate the payload shellcode
-+ and bind the payload shellcode to an existing executable without breaking its functionality. 
+The methods covered in this document use Metasploit to listen for incoming connections, generate the payload shellcode, and bind the payload shellcode to an existing executable without breaking its functionality. 
 
 The majority of steps outlined in this document take place in a GNU/Linux OS command line. The use of Kali Linux is strongly recommended as all dependencies for Metasploit and Veil are pre-installed. Although another GNU/Linux distribution can work.
 ***
 
-### 2. Veil payload generation
-The Veil-Evasion tool uses new techniques to generate a payload backdoored executable. The new techniques were implemented after performing research on the short comings of Metasploit to evade AV. 
+## 2. Veil payload generation
+The Veil-Evasion tool uses new techniques to generate a payload backdoored executable. Start here: <https://www.veil-framework.com/> for overview. The new techniques were implemented after performing research on the short comings of Metasploit to evade AV. 
 The Veil framework is best used in Kali (x86) as all dependencies are pre-installed. 
 The Veil framework does not require that you provide an executable, or executable template, the framework provides this for you. 
-Perform the following steps to generate your own veil exe. Start here: <https://www.veil-framework.com/> for overview. 
+Perform the following steps to generate your own veil exe. 
 
 1. Get yourself booted into a Kali instance - <http://www.kali.org/downloads/>, <http://docs.kali.org/category/installation>.
 2. Once in kali command line, clone the source code - run the following command.
@@ -86,7 +85,7 @@ Perform the following steps to generate your own veil exe. Start here: <https://
     `ls` # you should see evil.exe if there were no errors
 
 ***
-### 3. Evil putty payload
+## 3. Evil putty payload
 Perform the following steps to generate an infected putty executable.
 
 1. Install Metasploit
@@ -99,8 +98,8 @@ Perform the following steps to generate an infected putty executable.
 
     Where "/var/www/lulz/" is the `path` to your putty executable.
 
-### 4. BYOD-Email Survey payload
-Perform the following steps to generate a custom Metasploit infected executable. 
+## 4. BYOD-Email Survey payload
+For this method, we generated shellcode using Metasploit. That was then imported into a visual c++ program. Perform the following steps to generate a custom Metasploit infected executable. 
 
 1. Download and install Microsoft Visual Studio Professional 2013.
 2. Select `New Project`.
@@ -144,7 +143,7 @@ Perform the following steps to generate a custom Metasploit infected executable.
     `own();`
 17. Compile your application and run it. 
 ***
-### 5. Payload listener configuration
+## 5. Payload listener configuration
 Perform the following steps to configure the payload listener , or your "Phone-home" system. 
 
 1. Install Metasploit
@@ -170,7 +169,7 @@ Perform the following steps to configure the payload listener , or your "Phone-h
     `sessions -i 1` # 1 = session no. 
 
 ***
-### 6. Resources
+## 6. Resources
 Misc resources. 
 
 1. <http://realhackerspoint.blogspot.com/2013/02/create-virus-that-bypasses-antivirus.html/>
