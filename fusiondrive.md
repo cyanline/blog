@@ -1,10 +1,64 @@
-# Working with Apple's Fusion Drive and CoreStorage
+## Fusion Drive and Core Storage Forensics
+date: March 20 2014
 
-Apple has recently started selling computers with a storage medium they call Fusion Drive. Fusion Drive is the marketing name for Apple's custom RAID solution called CoreStorage.
+Apple's new iMac ships with a storage medium named Fusion Drive. Fusion Drive is the marketing name for Apple's custom RAID solution called CoreStorage.
 
-## Creating a CoreStorage Volume
+### 1. Acquiring a CoreStorage Volume
 
-A CoreStorage volume can be made up of 1 or more partitions on a block device. In our testing we tried three different configurations.
+CoreStorage volumes pose some unique challenges to a forensic investigator.
+
+#### Can you acquire a CoreStorage volume in a forensically sound manner?
+It is possible to acquire a CoreStorage volume in a forensically sound manner.  There are a couple ways that we found to do this. Both methods require the source machine to be in target disk mode.
+
+##### Method 1
+The first method requires an imaging system that will not write to the drives, such as the [FDAS](http://www.cyanline.com/fdas.php), or software such as [MiniDAS](http://www.cyanline.com/minidas.php). Attach the imaging system to the machine in target disk mode and acquire each drive separately.  This method ensures that the original source drives are not changed in any way. Using an imaging system to acquire the drives separately provides a physical acquisition which will give the forensic examiner access to all active and deleted data. See below for further details.
+
+##### Method 2
+The second method requires another machine running Mac OS X.  Once the source machine is in target disk mode DO NOT attach the source machine to the second machine running Mac OS X, the second machine will mount the CoreStorage volume and potentially change it, making the acquisition not forensically sound. Attach the destination drive where the evidence will be stored.  The operating system will automatically mount the drive.  Once the drive is mounted run the command below and take note of which drives are presented, our destination drive is /dev/disk1.
+
+    $ ls -l /dev/disk* | grep disk.$
+    brw-r-----  1 root  operator    1,   0 Mar 18 16:34 /dev/disk0
+    brw-r-----  1 root  operator    1,   4 Mar 19 15:37 /dev/disk1
+
+Next you must run the command below to disable the system from mounting or ejecting any more disks.
+
+    $ sudo launchctl unload /System/Library/LaunchDaemons/com.apple.diskarbitrationd.plist
+
+You can now safely attach your evidence machine in target disk mode. Since we have disabled disk arbitration on the system we can no longer use diskutil to inspect which drives are attached. Running the following command should now show 3 additional disks if the CoreStorage volume is made up of 2 disks.
+
+    $ ls -l /dev/disk* | grep disk.$
+    brw-r-----  1 root  operator    1,   0 Mar 18 16:34 /dev/disk0
+    brw-r-----  1 root  operator    1,   4 Mar 19 15:37 /dev/disk1
+    brw-r-----  1 root  operator    1,   7 Mar 19 15:55 /dev/disk2
+    brw-r-----  1 root  operator    1,  10 Mar 19 15:55 /dev/disk3
+    brw-r-----  1 root  operator    1,  15 Mar 19 16:00 /dev/disk4
+
+In our case above, /dev/disk2 and /dev/disk3 are the physical disks that make up the CoreStorage volume.  /dev/disk4 is the CoreStorage volume.
+
+Now that we know which disk is the CoreStorage volume we can acquire the drive using a tool such as GNU's dd.
+
+    $ dd if=/dev/disk4 of=/path/to/save/the/image/file.dd bs=4096
+
+We have chosen a blocksize of 4096 as a result of our research into [forensic acquistion performance](http://highspeedforensics.com/).
+
+#### Is a machine running Mac OS X required to assemble a CoreStorage volume?
+As of right now there are no solutions available outside of the tools that come with Mac OS X to assemble a CoreStorage volume.
+
+#### Is it possible to offer a CoreStorage volume as a block device on Linux?
+It is possible to install Mac OS X on a virtual machine, if you use the virtual machine to assemble the CoreStorage volume you should be able to export the volume to the host operating system. We have not tried this yet.
+
+#### Can we image each drive separately and assemble the images at a later time for examination?
+Through our testing we have discovered that you can acquire the drives separately and reassemble them at a later date, doing so provides a more complete acquisition because it provides a physical read from the disk which returns both active and deleted data on the disk as well as the disk's controller information (e.g. hours on, power cycle count, etc). Once you have acquired each drive separately you can reassmble the CoreStorage volume using a machine running OS X.  To do so you must attach both images as drives to the machine using the following command.
+
+    $ hdiutil attach -readonly -nomount -imagekey diskimage-class=CRawDiskImage image1.dd
+    $ hdiutil attach -readonly -nomount -imagekey diskimage-class=CRawDiskImage image2.dd
+
+Mac OS X will automatically assemble the CoreStorage volume but will not mount it.  From here you can image the CoreStorage volume.
+
+
+### 2. Creating a CoreStorage Volume
+
+A CoreStorage volume can be made up of 1 or more partitions on a block device or 1 or more block devices. In our testing we tried three different configurations.
 
 1. Two 8 GB USB Drives
 2. Two 8 GB USB Drives and a 750 GB SATA drive connected through a SATA to Thunderbolt adapter
@@ -60,7 +114,7 @@ To create the final CoreStorage volume run the command below. Be sure to replace
     Core Storage disk: disk3
     Finished CoreStorage operation
 
-The operating system should automatically mount your newly created CoreStorage volume.  If you run the command below you will notice that a new block device is now present, which is the CoreStorage volume you have just created, in our case it is /dev/disk3.
+The operating system should automatically mount your newly created CoreStorage volume.  If you run the following command, then you will notice that a new block device is now present, which is the CoreStorage volume you have just created, in our case it is /dev/disk3.
 
     $ diskutil list
     /dev/disk0
@@ -85,61 +139,9 @@ The operating system should automatically mount your newly created CoreStorage v
        #:                       TYPE NAME                    SIZE       IDENTIFIER
        0:                  Apple_HFS CyanStorage            *7.4 GB     disk3
 
-CoreStorage volumes are portable from system to system.  For example if we were to attach both drives used to create this CoreStorage volume to another machine running Mac OS X the new machine would automatically detect the drives and mount the CoreStorage volume.
+CoreStorage volumes are portable from one OS X Mavericks system to another.  For example if we were to attach both drives used to create this CoreStorage volume to another machine running Mac OS X the new machine would automatically detect the drives and mount the CoreStorage volume. This is done with the corestoragd daemon.
 
-## Acquiring a CoreStorage Volume
-
-CoreStorage volumes pose some unique challenges to a forensic investigator.
-
-#### Can you acquire a CoreStorage volume in a forensically sound manner?
-It is possible to acquire a CoreStorage volume in a forensically sound manner.  There are a couple ways to do this. Both methods require the source machine to be in target disk mode.  
-
-##### Method 1
-The first method requires an imaging system that will not write to the drives, such as the [FDAS](http://www.cyanline.com/fdas.php), or software such as [MiniDAS](http://www.cyanline.com/minidas.php). Attach the imaging system to the machine in target disk mode and acquire each drive separately.  This method ensures that the original source drives are not changed in any way. Using an imaging system to acquire the drives separately provides a physical acquisition which will give the forensic examiner access to all active and deleted data.
-
-##### Method 2
-The second method requires another machine running Mac OS X.  Once the source machine is in target disk mode DO NOT attach the source machine to the second machine running Mac OS X, the second machine will mount the CoreStorage volume and potentially change it, making the acquisition not forensically sound. Attach the destination drive where the evidence will be stored.  The operating system should automatically mount this drive.  Once the drive is mounted run the command below and take note of which drives are presented, our destination drive is /dev/disk1.
-
-    $ ls -l /dev/disk* | grep disk.$
-    brw-r-----  1 root  operator    1,   0 Mar 18 16:34 /dev/disk0
-    brw-r-----  1 root  operator    1,   4 Mar 19 15:37 /dev/disk1
-
-Next you must run the command below to disable the system from mounting or ejecting any more disks.
-
-    $ sudo launchctl unload /System/Library/LaunchDaemons/com.apple.diskarbitrationd.plist
-
-You can now safely attach your evidence machine in target disk mode. Since we have disabled disk arbitration on the system we can no longer use diskutil to inspect which drives are attached. Running the following command should now show 3 additional disks if the CoreStorage volume is made up of 2 disks.
-
-    $ ls -l /dev/disk* | grep disk.$
-    brw-r-----  1 root  operator    1,   0 Mar 18 16:34 /dev/disk0
-    brw-r-----  1 root  operator    1,   4 Mar 19 15:37 /dev/disk1
-    brw-r-----  1 root  operator    1,   7 Mar 19 15:55 /dev/disk2
-    brw-r-----  1 root  operator    1,  10 Mar 19 15:55 /dev/disk3
-    brw-r-----  1 root  operator    1,  15 Mar 19 16:00 /dev/disk4
-
-In our case above, /dev/disk2 and /dev/disk3 are the physical disks that make up the CoreStorage volume.  /dev/disk4 is the CoreStorage volume.
-
-Now that we know which disk is the CoreStorage volume we can acquire the drive using a tool such as GNU's dd.
-
-    $ dd if=/dev/disk4 of=/path/to/save/the/image/file.dd bs=4096
-
-We have chosen a blocksize of 4096 as a result of our research into [forensic acquistion performance](http://highspeedforensics.com/).
-
-#### Is a machine running Mac OS X required to assemble a CoreStorage volume?
-As of right now there are no solutions available outside of the tools that come with Mac OS X to assemble a CoreStorage volume.
-
-#### Is it possible to offer a CoreStorage volume as a block device on Linux?
-It is possible to install Mac OS X on a virtual machine, if you use the virtual machine to assemble the CoreStorage volume you should be able to export the volume to the host operating system.
-
-#### Can we image each drive separately and assemble the images at a later time for examination?
-Through our testing we have discovered that you can acquire the drives separately and reassemble them at a later date, doing so provides a more complete acquisition because it provides a physical read from the disk which returns both active and deleted data on the disk. Once you have acquired each drive separately you can reassmble the CoreStorage volume using a machine running OS X.  To do so you must attach both images as drives to the machine using the following command.
-
-    $ hdiutil attach -readonly -nomount -imagekey diskimage-class=CRawDiskImage image1.dd
-    $ hdiutil attach -readonly -nomount -imagekey diskimage-class=CRawDiskImage image2.dd
-
-Mac OS X will automatically assemble the CoreStorage volume but will not mount it.  From here you can image the CoreStorage volume.
-
-## Reverse Engineering CoreStorage
+### 3. Reverse Engineering CoreStorage
 
 Imaging the drives separately with an imaging system or creating a logical image of the CoreStorage volume with a Mac is acceptable but not ideal.  An ideal solution would be to physically image the entire volume at once.  To do this we must reverse engineer CoreStorage to provide us with physical access to the entire volume.
 
@@ -243,4 +245,6 @@ The UUID values in the hex dump match the UUID values returned by the following 
                 Volume Name:           CyanFusion
                 Content Hint:          Apple_HFS
 
-This shows that each drive that makes up a CoreStorage volum knows its own UUID as well as the UUID of all the other drives in the CoreStorage volume.  We believe the corestoraged daemon looks for these values and does not assemble a CoreStorage volume until all of the drives with UUIDs present in this configuration are attached to the machine.  This allows for the CoreStorage volumes to be moved from one machine to the other without the use of configuration files on the host machine.
+This tells us that each drive that makes up a CoreStorage volum knows its own UUID as well as the UUID of all the other drives in the CoreStorage volume.  We believe the corestoraged daemon looks for these values and does not assemble a CoreStorage volume until all of the drives with UUIDs present in this configuration are attached to the machine.  This allows for the CoreStorage volumes to be moved from one machine to the other without the use of configuration files on the host machine.
+
+In this writeup we have covered some of the basics of Apple's Fusion Drive/Core Storage, current solutions for forensically acquiring images of the Fusion Drive, and finally, started to collect information in the aim of mounting a Fusion Drive GNU/Linux side. Using this information and continuing research we hope to offer a complete solution soon.
