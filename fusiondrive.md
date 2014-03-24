@@ -245,6 +245,6 @@ The UUID values in the hex dump match the UUID values returned by the following 
                 Volume Name:           CyanFusion
                 Content Hint:          Apple_HFS
 
-This tells us that each drive that makes up a CoreStorage volum knows its own UUID as well as the UUID of all the other drives in the CoreStorage volume.  We believe the corestoraged daemon looks for these values and does not assemble a CoreStorage volume until all of the drives with UUIDs present in this configuration are attached to the machine.  This allows for the CoreStorage volumes to be moved from one machine to the other without the use of configuration files on the host machine.
+This tells us that each drive that makes up a CoreStorage volume knows its own UUID as well as the UUID of all the other drives in the CoreStorage volume.  We believe the corestoraged daemon looks for these values and does not assemble a CoreStorage volume until all of the drives with UUIDs present in this configuration are attached to the machine.  This allows for the CoreStorage volumes to be moved from one machine to the other without the use of configuration files on the host machine.
 
 In this writeup we have covered some of the basics of Apple's Fusion Drive/Core Storage, current solutions for forensically acquiring images of the Fusion Drive, and finally, started to collect information in the aim of mounting a Fusion Drive GNU/Linux side. Using this information and continuing research we hope to offer a complete solution soon.
