@@ -16,7 +16,7 @@ For this document's example, we will build an app with the Information Studio on
 
 First, we used the Information Studio to build an app to our liking. Specifically, we created a DB, ingested data into the DB, configured the Range Indexes, created a REST app, and matched the facets to the range-indices.
 
-![Info Studio](./ss-infostud.png "Info Studio")
+![Info Studio](./images/ss-infostud.png "Info Studio")
 
 Once the app is created, we use the Application Builder to tweak it. This consists of
 
@@ -24,7 +24,7 @@ Once the app is created, we use the Application Builder to tweak it. This consis
 * configuring the aesthetics of the Live Preview, Content, and the app's appearance. 
 * deploying the REST App to a port such as 8010
 
-![App Builder](./ss-app_builder.png "App Builder")
+![App Builder](./images/ss-app_builder.png "App Builder")
 
 ###2. Configuration
 Next, we used Roxy to perform a full capture of the previously built app. Roxy can be found on MarkLogic's [github page](https://github.com/marklogic/roxy Roxy@github). A great guide to Roxy capture can be found [here](http://grtjn.blogspot.nl/2014/10/capturing-marklogic-applications-with.html Capturing MarkLogic applications with Roxy)
@@ -217,7 +217,7 @@ Below are a few helpful pieces of information regarding the templates.
 
 The developer guide for creating a template is very straight forward. Navigate to Certificate Templates, hit the `Create` button, give a name, descrip, and the certificate request information.
 
-![Certificate Templates](./ss-sslplate-1.png "SSL Template")
+![Certificate Templates](./images/ss-sslplate-1.png "SSL Template")
 
 Next, click the `Status` button and notice the emptiness of "Needed Certificate Requests", "Pending Certificate Requests", and "Signed Certificates". 
 
@@ -226,7 +226,7 @@ To populate these sections, head over to the `Groups/Default/App Servers/` and s
 
 Navigate back to the Certificate Templates interface, and select the template we just created. Notice that now, we have populated some information. This is done because once the template is being used by an HTTP app server, the MarkLogic server creates a self signed cert and assigns it to the app server. 
 
-![Pending Template](./ss-sslplate-2.png "SSL Template")
+![Pending Template](./images/ss-sslplate-2.png "SSL Template")
 
 Notice the `true` value for Temporary.
 
@@ -236,14 +236,14 @@ For no specific reason other that $$ , we went with Comodo as our CA. Looking th
 #####Certificate Authorities
 Chain the trust/root CA keys into one file, and either paste the file or upload it at the Import interface, as shown below. Upon success, MarkLogic will now support Comodo signed certs. 
 
-![Certificate Authorities](./ss-sslplate-3.png "Certificate Authorities")
+![Certificate Authorities](./images/ss-sslplate-3.png "Certificate Authorities")
 
 #####Signed Certificate
 Now, we have a self-signed SSL Template and the ability for MarkLogic to support our coming CA-signed certificate. Time to get the certificate. Navigate to the SSL Template configuration interface, and hit the `Request` button.
 
 Back at the Status page, things have changed. We no longer have Needed Certificates Requests, but instead have Pending Certificate Requests, with an accompanying `download` button. Download the .csr file, and head on over to your CA to request a signed certificate. After entering all of the required information, its time to provide the CA with our MarkLogic generated csr key. Once this process is complete, we will have a signed cert from a CA.
 
-![(CA) Signed Cert](./ss-sslplate-4.png "CA Signed Cert")
+![(CA) Signed Cert](./images/ss-sslplate-4.png "CA Signed Cert")
 
 Notice now, that Needed and Pending are empty. Even more important, notice the Temporary value has changed from `true` to `false`.
 
