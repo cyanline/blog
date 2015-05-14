@@ -26,11 +26,11 @@ Once the app is created, we use the Application Builder to tweak it. This consis
 
 ![App Builder](./images/ss-app_builder.png "App Builder")
 
-###2. Configuration
+###2. <a name="capture"></a> Configuration
 Next, we used Roxy to perform a full capture of the previously built app. Roxy can be found on MarkLogic's [github page](https://github.com/marklogic/roxy Roxy@github). A great guide to Roxy capture can be found [here](http://grtjn.blogspot.nl/2014/10/capturing-marklogic-applications-with.html Capturing MarkLogic applications with Roxy)
 
 The steps to complete this are as follows.
-####2.1 <a name="capture"></a> Create an empty Roxy project 
+####2.1 Create an empty Roxy project 
 
 `ml new cloudapp --server-version=7 --branch=dev --app-type=rest`
 
