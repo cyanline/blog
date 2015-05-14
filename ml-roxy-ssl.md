@@ -39,7 +39,7 @@ Where
 * `ml new` is the command to create the app
 * `cloudapp` is the name of this app
 * `--server-version=7` sets the version of MarkLogic to use (Up to 8 now)
-* `--branch=dev` out of the boxy Roxy, being a deployment framework, comes with 3 deployment environments: `dev, local, prod` (production)
+* `--branch=dev` out of the box Roxy, being a deployment framework, comes with 3 deployment environments: `dev, local, prod` (production)
 * `--app-type=rest` tells Roxy we want an [REST App](https://developer.marklogic.com/learn/rest MarkLogic REST app descrip)
 
 Here, we will have produced a directory called `cloudapp` with the Roxy app structure inside. Within the directory, there are many files of concern, but lets take them one at a time. 
@@ -62,9 +62,9 @@ Next, we perform the capture by executing the following command.
 
 If you're using git to monitor changes, you will see that a new file, a really long file, has been created. This file, `deploy/ml-config-dev.xml`, contains all of the details of the configuration of the MarkLogic server we created the `dev` server on.
 
-Now that we have the full config, we can siphon out the details of our `dev` REST app from `ml-config-dev.xml` and use them for our local environment. This can be done 2 ways. The first is to hard code the configuration details found in `ml-config-dev.xml` into `ml-config.xml` , or we can set the configuration details from within an environment. 
+Now that we have the full config, we can siphon out the details of our `dev` REST app from `ml-config-dev.xml` and use them for our local environment. This can be done a few ways. The first is to hard code the configuration details found in `ml-config-dev.xml` into `ml-config.xml` , or we can set the configuration details from within an environment. 
 
-We're went with a hybrid of those options. Details placed in `ml-config.xml` will not be configurable between environments (`dev/local/prod`). In our case, the actual REST Application's DB, Range Indices, and Modules will not change in setup, but only in name. Therefore, the following changes are the only changes made to `ml-config.xml`.
+We went with a hybrid of those options. Details placed in `ml-config.xml` will not be configurable between environments (`dev/local/prod`). In our case, the actual REST Application's DB, Range Indices, and Modules will not change in setup, but only in name. Therefore, the following changes are the only changes made to `ml-config.xml`.
 
 In the `assignments` tag, we added
 
@@ -204,7 +204,7 @@ And, to restart the MarkLogic server
 ###3. <a name="ssl"></a> Create SSL Template
 Next, we will use the admin interface to create a signed cert SSL Template. This will consist of producing a cert request (.csr), importing our CA's root trust certs into Marklogic, and deploying a Roxy app that will use the template.
 
-Currently, MarkLogic does not support importation of an already issues cert, instead we must generate a cert request (.csr) using MarkLogic and then take that to a CA.
+Currently, MarkLogic does not support importation of an already issued cert, instead we must generate a cert request (.csr) using MarkLogic and then take that to a CA.
 
 ####3.1 Create
 The trick here is this, if the configuration files are not just right, the rest app that will be deployed will re-create the SSL Template...in other words, overwrite/obliterate the template that we created in the admin interface. Which, if the template contained a signed cert, means we're going all the way back to the CA with a newly generated csr to ask to be re-issued our just-issued cert. 
