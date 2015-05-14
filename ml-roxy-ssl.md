@@ -4,15 +4,15 @@
 ##Overview
 This document will cover the following.
 
-1. Capture a (pre wizard/InfoStudio -built) rest-app with Roxy
-2. configuring the configuration files
-3. creating an SSL Template with a signed cert
-4. deploying a Roxy app with a signed cert
+1. [Pre build rest-app with wizard/InfoStudio](#build)
+2. Capture and configure the configuration files
+3. Creating an SSL Template with a signed cert
+4. [Deploying a Roxy app with a signed cert](#roxy-deploy)
 
 ##Method
 For this document's example, we will build an app with the Information Studio on one machine, and then capture its configuration using Roxy from another machine. We will deploy our Roxy application to the second machine. The first machine will be our `dev` machine/environment, the second machine will be our `local` machine/environment.
 
-###1. Capture
+###1. <a name="build"></a> Build
 
 First, we used the Information Studio to build an app to our liking. Specifically, we created a DB, ingested data into the DB, configured the Range Indexes, created a REST app, and matched the facets to the range-indices.
 
@@ -30,7 +30,7 @@ Once the app is created, we use the Application Builder to tweak it. This consis
 Next, we used Roxy to perform a full capture of the previously built app. Roxy can be found on MarkLogic's [github page](https://github.com/marklogic/roxy Roxy@github). A great guide to Roxy capture can be found [here](http://grtjn.blogspot.nl/2014/10/capturing-marklogic-applications-with.html Capturing MarkLogic applications with Roxy)
 
 The steps to complete this are as follows.
-####1. Create an empty Roxy project 
+####2.1 Create an empty Roxy project 
 
 `ml new cloudapp --server-version=7 --branch=dev --app-type=rest`
 
@@ -44,7 +44,7 @@ Where
 
 Here, we will have produced a directory called `cloudapp` with the Roxy app structure inside. Within the directory, there are many files of concern, but lets take them one at a time. 
 
-####2. Capture the `dev` app configuration
+####2.2 Capture the `dev` app configuration
 
 We want to capture the configuration of the app built on the dev server in Information Studio. In order to do so, we need to tell this Roxy app where it will get the app configuration files from. Our Information Studio built app will be considered our `dev` environment, and the app we deploy with Roxy will initially be our `local` environment. 
 
@@ -153,7 +153,7 @@ The next step will shed some light on the references. Next, create and edit the 
 
 Getting the configuration files right will be painful. We suggest `tail -f /var/opt/MarkLogic/Logs/ErrorLog.txt` when running the following Roxy commands. 
 
-####3. Bootstrap
+####2.3 Bootstrap
 We're ready to bootstrap our `local` environment. Doing so will create a REST app on the port designated with `app-port` in our `local` properties file. Run the following command.
 
     ml local bootstrap
@@ -164,7 +164,7 @@ Where
 
 Again, watch the log to see what Roxy is tripping on. Continue to massage the `ml-config.xml` and `local.properties` files until the bootstrap command returns successfully. You can browse to the app's port and the MarkLogic Admin interface to verify your app and services were created. 
 
-####4. Deploy Modules
+####2.4 Deploy Modules
 Assuming that you have got the `... Bootstrap Complete` result, we can now move onto the second half of capturing. Here, we will capture the Modules, which is the source code for the REST App built on the `dev` machine. Run the following command.
 
     ml dev capture --app-builder=orig_cloudapp
@@ -206,7 +206,7 @@ Next, we will use the admin interface to create a signed cert SSL Template. This
 
 Currently, MarkLogic does not support importation of an already issues cert, instead we must generate a cert request (.csr) using MarkLogic and then take that to a CA.
 
-####1. Create
+####3.1 Create
 The trick here is this, if the configuration files are not just right, the rest app that will be deployed will re-create the SSL Template...in other words, overwrite/obliterate the template that we created in the admin interface. Which, if the template contained a signed cert, means we're going all the way back to the CA with a newly generated csr to ask to be re-issued our just-issued cert. 
 
 Below are a few helpful pieces of information regarding the templates.
@@ -221,7 +221,7 @@ The developer guide for creating a template is very straight forward. Navigate t
 
 Next, click the `Status` button and notice the emptiness of "Needed Certificate Requests", "Pending Certificate Requests", and "Signed Certificates". 
 
-####2. Request
+####3.2 Request
 To populate these sections, head over to the `Groups/Default/App Servers/` and server and select an arbitrary HTTP server to configure (temporarily). Head towards the bottom of its long configuration page to the ssl certificate section. Simply select the SSL Certificate Template we just created from the drop down menu, and select `ok`.
 
 Navigate back to the Certificate Templates interface, and select the template we just created. Notice that now, we have populated some information. This is done because once the template is being used by an HTTP app server, the MarkLogic server creates a self signed cert and assigns it to the app server. 
@@ -230,7 +230,7 @@ Navigate back to the Certificate Templates interface, and select the template we
 
 Notice the `true` value for Temporary.
 
-####3. ImportS
+####3.3 ImportS
 For no specific reason other that $$ , we went with Comodo as our CA. Looking through `Security/Certificate Authorities/` we see there is not Comodo support out of the box. Being that we can get a domain-valid cert from Comodo for $7, we decided to import Comodo's CA info into the MarkLogic server. If the deal is still going, it can be [found here](http://www.google.com/aclk?sa=l&ai=Cg8zWAbdTVdAO172EBLHggHjk1878Boz-58HcAerH4LlDCAMQAWDJxuWKtKTYD6ABvKTb1APIAQGqBCdP0PKNi68fAZmMrZ0kLcCSzLdT8mRyb9HSUBxB39dTwcGsRD2dvseAB6zbpCuIBwGQBwKoB6a-G9gHAQ&sig=AOD64_3QJdV_oeXrgZkdAGRuXjt97PpE6w&rct=j&q=&ved=0CIcBENEM&adurl=https://comodosslstore.com/promoads/cheap-comodo-ssl.aspx PositiveSSL $6.99). 
 
 #####Certificate Authorities
@@ -249,7 +249,7 @@ Notice now, that Needed and Pending are empty. Even more important, notice the T
 
 Finally, we're ready to deploy our CA-signed SSL-enabled REST app using Roxy.
 
-###4. Deploy
+###4. <a name="roxy-deploy"></a> Deploy
 Back in our Roxy's REST app directory, we need to edit `ml-config.xml` and our environment's properties file, `local.properties`.
 
 Add the following to `ml-config.xml` under the `<groups><group><http-server>` tags.
