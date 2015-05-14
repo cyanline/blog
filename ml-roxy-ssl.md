@@ -5,8 +5,8 @@
 This document will cover the following.
 
 1. [Pre build rest-app with wizard/InfoStudio](#build)
-2. Capture and configure the configuration files
-3. Creating an SSL Template with a signed cert
+2. [Capture and configure the configuration files](#capture)
+3. [Creating an SSL Template with a signed cert](#ssl)
 4. [Deploying a Roxy app with a signed cert](#roxy-deploy)
 
 ##Method
@@ -30,7 +30,7 @@ Once the app is created, we use the Application Builder to tweak it. This consis
 Next, we used Roxy to perform a full capture of the previously built app. Roxy can be found on MarkLogic's [github page](https://github.com/marklogic/roxy Roxy@github). A great guide to Roxy capture can be found [here](http://grtjn.blogspot.nl/2014/10/capturing-marklogic-applications-with.html Capturing MarkLogic applications with Roxy)
 
 The steps to complete this are as follows.
-####2.1 Create an empty Roxy project 
+####2.1 <a name="capture"></a> Create an empty Roxy project 
 
 `ml new cloudapp --server-version=7 --branch=dev --app-type=rest`
 
@@ -201,7 +201,7 @@ To undo Roxy commands, use
 And, to restart the MarkLogic server
 * `service MarkLogic restart`
 
-###3. Create SSL Template
+###3. <a name="ssl"></a> Create SSL Template
 Next, we will use the admin interface to create a signed cert SSL Template. This will consist of producing a cert request (.csr), importing our CA's root trust certs into Marklogic, and deploying a Roxy app that will use the template.
 
 Currently, MarkLogic does not support importation of an already issues cert, instead we must generate a cert request (.csr) using MarkLogic and then take that to a CA.
